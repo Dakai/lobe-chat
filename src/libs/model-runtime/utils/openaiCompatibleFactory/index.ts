@@ -22,6 +22,7 @@ import {
   TextToSpeechOptions,
   TextToSpeechPayload,
 } from '../../types';
+import { CreateImagePayload, CreateImageResponse } from '../../types/image';
 import { AgentRuntimeError } from '../createError';
 import { debugResponse, debugStream } from '../debugStream';
 import { desensitizeUrl } from '../desensitizeUrl';
@@ -81,6 +82,7 @@ interface OpenAICompatibleFactoryOptions<T extends Record<string, any> = any> {
     noUserId?: boolean;
   };
   constructorOptions?: ConstructorOptions<T>;
+  createImage?: (payload: CreateImagePayload & { client: OpenAI }) => Promise<CreateImageResponse>;
   customClient?: CustomClientOptions<T>;
   debug?: {
     chatCompletion: () => boolean;
@@ -166,6 +168,7 @@ export const createOpenAICompatibleRuntime = <T extends Record<string, any> = an
   debug,
   constructorOptions,
   chatCompletion,
+  createImage,
   models,
   customClient,
   responses,
@@ -208,15 +211,7 @@ export const createOpenAICompatibleRuntime = <T extends Record<string, any> = an
       this.id = options.id || provider;
     }
 
-    async chat(
-      { responseMode, apiMode, ...payload }: ChatStreamPayload,
-      options?: ChatMethodOptions,
-    ) {
-      // new openai Response API
-      if (apiMode === 'responses') {
-        return this.handleResponseAPIMode(payload, options);
-      }
-
+    async chat({ responseMode, ...payload }: ChatStreamPayload, options?: ChatMethodOptions) {
       try {
         const inputStartAt = Date.now();
         const postPayload = chatCompletion?.handlePayload
@@ -225,6 +220,11 @@ export const createOpenAICompatibleRuntime = <T extends Record<string, any> = an
               ...payload,
               stream: payload.stream ?? true,
             } as OpenAI.ChatCompletionCreateParamsStreaming);
+
+        // new openai Response API
+        if ((postPayload as any).apiMode === 'responses') {
+          return this.handleResponseAPIMode(payload, options);
+        }
 
         const messages = await convertOpenAIMessages(postPayload.messages);
 
@@ -308,6 +308,13 @@ export const createOpenAICompatibleRuntime = <T extends Record<string, any> = an
       } catch (error) {
         throw this.handleError(error);
       }
+    }
+
+    async createImage(payload: CreateImagePayload) {
+      return createImage!({
+        ...payload,
+        client: this.client,
+      });
     }
 
     async models() {
@@ -478,11 +485,12 @@ export const createOpenAICompatibleRuntime = <T extends Record<string, any> = an
     ): Promise<Response> {
       const inputStartAt = Date.now();
 
-      const { messages, ...res } = responses?.handlePayload
+      const { messages, reasoning_effort, tools, reasoning, ...res } = responses?.handlePayload
         ? (responses?.handlePayload(payload, this._options) as ChatStreamPayload)
         : payload;
 
       // remove penalty params
+      delete res.apiMode;
       delete res.frequency_penalty;
       delete res.presence_penalty;
 
@@ -490,9 +498,17 @@ export const createOpenAICompatibleRuntime = <T extends Record<string, any> = an
 
       const postPayload = {
         ...res,
+        ...(reasoning || reasoning_effort
+          ? {
+              reasoning: {
+                ...reasoning,
+                ...(reasoning_effort && { effort: reasoning_effort }),
+              },
+            }
+          : {}),
         input,
         store: false,
-        tools: payload.tools?.map((tool) => this.convertChatCompletionToolToResponseTool(tool)),
+        tools: tools?.map((tool) => this.convertChatCompletionToolToResponseTool(tool)),
       } as OpenAI.Responses.ResponseCreateParamsStreaming;
 
       if (debug?.responses?.()) {
