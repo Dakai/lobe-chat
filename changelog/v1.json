@@ -2,6 +2,90 @@
   {
     "children": {
       "fixes": [
+        "Aihubmix provider request headers."
+      ]
+    },
+    "date": "2025-08-03",
+    "version": "1.107.3"
+  },
+  {
+    "children": {
+      "improvements": [
+        "Move types to separate package."
+      ]
+    },
+    "date": "2025-08-02",
+    "version": "1.107.2"
+  },
+  {
+    "children": {
+      "improvements": [
+        "Update i18n."
+      ]
+    },
+    "date": "2025-08-01",
+    "version": "1.107.1"
+  },
+  {
+    "children": {
+      "features": [
+        "Support aihubmix provider."
+      ]
+    },
+    "date": "2025-08-01",
+    "version": "1.107.0"
+  },
+  {
+    "children": {
+      "improvements": [
+        "Support SenseNova V6.5 models."
+      ]
+    },
+    "date": "2025-07-31",
+    "version": "1.106.8"
+  },
+  {
+    "children": {
+      "improvements": [
+        "Update Aliyun Bailian models."
+      ]
+    },
+    "date": "2025-07-31",
+    "version": "1.106.7"
+  },
+  {
+    "children": {
+      "fixes": [
+        "Fix oidc oauth callback pages 404."
+      ]
+    },
+    "date": "2025-07-31",
+    "version": "1.106.6"
+  },
+  {
+    "children": {
+      "improvements": [
+        "Improve mcp plugin calling and display."
+      ]
+    },
+    "date": "2025-07-30",
+    "version": "1.106.5"
+  },
+  {
+    "children": {
+      "fixes": [
+        "Fix mcp calling missing array content."
+      ],
+      "improvements": [
+        "Update i18n."
+      ]
+    },
+    "date": "2025-07-30",
+    "version": "1.106.4"
+  },
+  {
+    "children": {
+      "fixes": [
         "Moonshot assistant messages must not be empty."
       ],
       "improvements": [
