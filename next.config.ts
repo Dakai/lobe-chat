@@ -13,7 +13,6 @@ const shouldUseCSP = process.env.ENABLED_CSP === '1';
 
 // if you need to proxy the api endpoint to remote server
 
-const basePath = process.env.NEXT_PUBLIC_BASE_PATH;
 const isStandaloneMode = buildWithDocker || isDesktop;
 
 const standaloneConfig: NextConfig = {
@@ -23,7 +22,6 @@ const standaloneConfig: NextConfig = {
 
 const nextConfig: NextConfig = {
   ...(isStandaloneMode ? standaloneConfig : {}),
-  basePath,
   compress: isProd,
   experimental: {
     optimizePackageImports: [
@@ -40,6 +38,7 @@ const nextConfig: NextConfig = {
     // refs: https://github.com/lobehub/lobe-chat/pull/7430
     serverMinification: false,
     webVitalsAttribution: ['CLS', 'LCP'],
+    webpackMemoryOptimizations: true,
   },
   async headers() {
     const securityHeaders = [
